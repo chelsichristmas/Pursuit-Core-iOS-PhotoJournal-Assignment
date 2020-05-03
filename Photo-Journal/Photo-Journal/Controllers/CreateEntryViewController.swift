@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-protocol CreateEntryDelegate {
+protocol CreateEntryDelegate: AnyObject {
     func createdEntry(_ entry: EntryObject)
 }
 class CreateEntryViewController: UIViewController {
@@ -19,7 +19,7 @@ class CreateEntryViewController: UIViewController {
     
     @IBOutlet weak var postTextView: UITextView!
     
-    var delegate: CreateEntryDelegate?
+    weak var delegate: CreateEntryDelegate?
     private let dataPersistence = PersistenceHelper(filename: "images.plist")
     private var entry: EntryObject?
     
@@ -35,45 +35,38 @@ class CreateEntryViewController: UIViewController {
     }
     
     
-    private lazy var tapImageGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer()
-        gesture.addTarget(self, action: #selector(tappedImage(_gesture:)))
-        return gesture
-    }()
-    
-    
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         imagePickerController.delegate = self
-        postImageView.addGestureRecognizer(tapImageGesture)
         
+        loadEntryObjects()
+                
+    }
+    
+    private func loadEntryObjects() {
+      do {
+        entryObjects = try dataPersistence.loadItems()
+      } catch {
+        print("loading objects error: \(error)")
+      }
     }
     
     
     
-    @objc private func tappedImage(_gesture: UITapGestureRecognizer) {
+    @IBAction func pressedPhotoLibrary(_ sender: Any) {
         
-        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let cameraAction = UIAlertAction(title: "Camera", style: .default) { [weak self] alertAction in
-            self?.showImageController(isCameraSelected: true)
-        }
-        
-        let photoLibraryAction = UIAlertAction(title: "Photo Library", style: .default) { [weak self] alertAction in
-            self?.showImageController(isCameraSelected: false)
-        }
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-        
-        
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            alertController.addAction(cameraAction)
-        }
-        
-        alertController.addAction(photoLibraryAction)
-        alertController.addAction(cancelAction)
-        present(alertController, animated: true)
+        showImageController(isCameraSelected: false)
     }
+    
+    
+    @IBAction func pressedCameraButton(_ sender: Any) {
+        
+        showImageController(isCameraSelected: true)
+    }
+    
+    
     
     private func showImageController(isCameraSelected: Bool) {
         
@@ -143,16 +136,25 @@ private func appendNewPhotoToCollection() {
     }
     let entryObject = EntryObject(imageData: resizedImageData, date: Date(), caption: caption)
     
+    entryObjects.insert(entryObject, at: 0)
+    
+    print(" Entry Objects Count: \(entryObjects.count)")
+//    print(entryObjects.count)
+//    let indexPath = IndexPath(row: 0, section: 0)
+//
+//    let imagesViewController = ImagesViewController()
+//    guard let collectionView = imagesViewController.collectionView else { return }
+//    collectionView.insertItems(at: [indexPath])
+   
     
     entry = entryObject
-    
+    delegate?.createdEntry(entryObject)
     do {
           try dataPersistence.create(item: entryObject)
       } catch {
           print("saving error: \(error)")
       }
-//    entryObjects.insert(entryObject, at: 0)
-    
+
   
 }
 
