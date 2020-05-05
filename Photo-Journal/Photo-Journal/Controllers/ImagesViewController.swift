@@ -37,7 +37,6 @@ class ImagesViewController: UIViewController {
         loadEntryObjects()
         
         collectionView.reloadData()
-        
         print(entryObjects.count)
 
     }
@@ -45,10 +44,6 @@ class ImagesViewController: UIViewController {
     super.viewDidLoad()
     collectionView.dataSource = self
     collectionView.delegate = self
-    
-    
-    
-    
   }
     
   
@@ -62,37 +57,22 @@ class ImagesViewController: UIViewController {
   
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
+        let createEntryVC = segue.destination as! CreateEntryViewController
         if segue.identifier == "editSegue" {
             
 
-            let createEntryVC = segue.destination as! CreateEntryViewController
+            
             guard let indexPath = selectedIndexPath else {
                 return
             }
             createEntryVC.entry = self.entryObjects[indexPath]
-                          
-            }
-        
-        // getting the entry back over to the view controller to work with
-            
-            // give a value to entry on the CreateEntryViewController
-            // the value of the entry should be the entryObject on the cell that you've decided to edit
-            // the cell has an edit button that is being pressed
-            //
-            
-//           // I'm taking the image from the cell by using th editButton's title to get the image at that indexPath
-//            createEntryVC.entry = entryObjects[1]
-//            createEntryVC.cameraButton.isEnabled = false
-//            createEntryVC.photoLibraryButton.isEnabled = false
-//
-//            } else if segue.identifier == "createSegue" {
-//
-//    
+            createEntryVC.eventIndex = indexPath
         
         }
    
     }
+    
+}
 
 
 extension ImagesViewController: UICollectionViewDataSource {
@@ -109,8 +89,7 @@ extension ImagesViewController: UICollectionViewDataSource {
     cell.configureCell(entryObject: entryObject)
     
     cell.delegate = self
-    
-    cell.editButton.setTitle("\(indexPath.row)", for: .normal)
+
     return cell
   }
     
@@ -133,9 +112,6 @@ extension ImagesViewController: EntryCellDelegate {
       return
     }
     
-    // present an action sheet
-    
-    // actions: delete, cancel
     let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
     let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] alertAction in
       self?.deleteImageObject(indexPath: indexPath)
