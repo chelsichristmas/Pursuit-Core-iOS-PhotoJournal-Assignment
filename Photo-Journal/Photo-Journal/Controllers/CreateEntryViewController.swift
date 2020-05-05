@@ -28,11 +28,7 @@ class CreateEntryViewController: UIViewController {
     
     private let dataPersistence = PersistenceHelper(filename: "images.plist")
     
-    public var entry: EntryObject? {
-        didSet {
-       configureEditViewController()
-        }
-    }
+    public var entry: EntryObject?
     
     
     private var entryObjects = [EntryObject]()
@@ -41,15 +37,20 @@ class CreateEntryViewController: UIViewController {
     
     public var selectedImage: UIImage? {
         didSet {
+            
+            
             postImageView.image = selectedImage
-
+            
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         
-        
+        loadEntryObjects()
+        if entry != nil {
+        configureEditViewController()
+             }
     }
     
     
@@ -57,10 +58,15 @@ class CreateEntryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         imagePickerController.delegate = self
+        postTextView.delegate = self
         
         loadEntryObjects()
+        
+        
                 
     }
+    
+    
     
     private func loadEntryObjects() {
       do {
@@ -71,11 +77,13 @@ class CreateEntryViewController: UIViewController {
     }
     
     private func configureEditViewController() {
-        guard let entry = entry else {
-                   fatalError("No entry object")
-               }
+        guard let entry = self.entry else {
+            fatalError("No entry object")
+        }
         DispatchQueue.main.async {
-                       self.postImageView.image = UIImage(data: entry.imageData)
+            
+            
+                    self.postImageView.image = UIImage(data: entry.imageData)
                        
                        self.photoLibraryButton.isEnabled = false
                        self.cameraButton.isEnabled = false
@@ -85,6 +93,10 @@ class CreateEntryViewController: UIViewController {
                    }
     }
     
+    private func configureTextView() {
+        postTextView.textColor = UIColor.lightGray
+        postTextView.text = "Enter photo description..."
+    }
     
     @IBAction func pressedPhotoLibrary(_ sender: Any) {
         
@@ -112,7 +124,7 @@ class CreateEntryViewController: UIViewController {
     
 
 
-@IBAction func createButtonPressed(_ sender: UIBarButtonItem) {
+@IBAction func createAndSaveButtonPressed(_ sender: UIBarButtonItem) {
     
     if entry == nil {
     let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .alert)
@@ -126,17 +138,27 @@ class CreateEntryViewController: UIViewController {
         guard let entry = entry else { return }
         delegate?.createdEntry(entry)
         
+        
         self.navigationController?.popViewController(animated: true)
+       // self.entry = nil
     } else {
         present(alertController, animated: true)
     }
     } else {
+        
+        
+        self.navigationController?.popViewController(animated: true)
+       // self.entry = nil
+    }
+    
+    
         // update function
+        
         
     }
     
     
-}
+
 
  
 private func appendNewPhotoToCollection() {
@@ -190,7 +212,14 @@ private func appendNewPhotoToCollection() {
 }
 
 }
-
+extension CreateEntryViewController: UITextViewDelegate {
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        if textView.textColor == UIColor.lightGray {
+            textView.text = ""
+            textView.textColor = UIColor.black
+        }
+    }
+}
 
 extension CreateEntryViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
   func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
@@ -210,3 +239,5 @@ extension CreateEntryViewController: UIImagePickerControllerDelegate, UINavigati
     dismiss(animated: true)
   }
 }
+
+
