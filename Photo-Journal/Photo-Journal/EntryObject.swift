@@ -12,5 +12,5 @@ struct EntryObject: Codable {
   let imageData: Data
   let date: Date
   let identifier = UUID().uuidString
-    let caption: String?
+    var caption: String?
 }
